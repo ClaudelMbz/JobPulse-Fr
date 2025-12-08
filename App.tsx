@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppView } from './types';
 import { AnalysisView } from './components/AnalysisView';
@@ -95,7 +96,7 @@ const App: React.FC = () => {
         )}
 
         {currentView === AppView.PROFILE && (
-          <ProfileView />
+          <ProfileView onNavigateToSearch={() => setCurrentView(AppView.SEARCH)} />
         )}
         
         {currentView === AppView.SEARCH && (

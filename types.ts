@@ -1,3 +1,4 @@
+
 export enum AppView {
   STRATEGY = 'STRATEGY',
   SEARCH = 'SEARCH',
@@ -36,7 +37,9 @@ export interface Experience {
   id: string;
   company: string;
   role: string;
-  duration: string;
+  startDate: string; // YYYY-MM
+  endDate: string; // YYYY-MM or empty if current
+  isCurrent: boolean;
   description: string;
 }
 
@@ -51,7 +54,8 @@ export interface Education {
   id: string;
   school: string;
   degree: string;
-  year: string;
+  startDate: string; // YYYY-MM
+  endDate: string; // YYYY-MM
 }
 
 export interface MasterProfile {
@@ -66,4 +70,14 @@ export interface MasterProfile {
   experiences: Experience[];
   projects: Project[];
   education: Education[];
+}
+
+// --- GENERATED APPLICATION PACKAGE (STEP 3) ---
+
+export interface ApplicationPackage {
+  matchScore: number; // 0-100
+  missingSkills: string[];
+  optimizedProfile: MasterProfile; // The profile rewritten for the job
+  coverLetter: string; // Markdown content
+  analysis: string; // Brief explanation of the strategy used
 }

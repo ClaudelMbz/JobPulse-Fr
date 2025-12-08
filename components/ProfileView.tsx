@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { MasterProfile, Experience, Project, Education } from '../types';
-import { Save, User, Briefcase, Code, GraduationCap, Plus, Trash2, AlertCircle, CheckCircle2, Download, Upload } from 'lucide-react';
+import { Save, User, Briefcase, Code, GraduationCap, Plus, Trash2, AlertCircle, CheckCircle2, Download, Upload, ArrowRight } from 'lucide-react';
+import { AppView } from '../types';
 
 const EMPTY_PROFILE: MasterProfile = {
   fullName: '',
@@ -16,7 +18,12 @@ const EMPTY_PROFILE: MasterProfile = {
   education: []
 };
 
-export const ProfileView: React.FC = () => {
+// We add a prop to allow navigation change from here
+interface ProfileViewProps {
+  onNavigateToSearch?: () => void;
+}
+
+export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) => {
   const [profile, setProfile] = useState<MasterProfile>(EMPTY_PROFILE);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,10 +70,8 @@ export const ProfileView: React.FC = () => {
       try {
         const content = e.target?.result as string;
         const parsedProfile = JSON.parse(content);
-        // Simple validation check
         if (parsedProfile && typeof parsedProfile === 'object') {
           setProfile(prev => ({ ...EMPTY_PROFILE, ...parsedProfile }));
-          // Auto-save after import
           localStorage.setItem('jobpulse_master_profile', JSON.stringify(parsedProfile));
           setStatus('saved');
           setTimeout(() => setStatus('idle'), 3000);
@@ -79,16 +84,13 @@ export const ProfileView: React.FC = () => {
       }
     };
     reader.readAsText(file);
-    // Reset input so same file can be selected again if needed
     event.target.value = '';
   };
 
-  // Helper helpers
   const updateField = (field: keyof MasterProfile, value: any) => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
-  // Generic List Management (Experiences, Projects, etc)
   const addItem = (key: 'experiences' | 'projects' | 'education', emptyItem: any) => {
     setProfile(prev => ({
       ...prev,
@@ -109,7 +111,7 @@ export const ProfileView: React.FC = () => {
     });
   };
 
-  const updateItem = (key: keyof MasterProfile, id: string, field: string, value: string) => {
+  const updateItem = (key: keyof MasterProfile, id: string, field: string, value: string | boolean) => {
     setProfile(prev => {
       const list = prev[key];
       if (Array.isArray(list)) {
@@ -133,12 +135,11 @@ export const ProfileView: React.FC = () => {
             Mon Profil
           </h1>
           <p className="text-slate-400 text-sm">
-            Ceci est ta base de données brute. L'IA utilisera ces informations pour générer tes CVs.
+            Base de données brute utilisée par l'IA.
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
-          {/* Hidden File Input */}
+        <div className="flex items-center gap-2 flex-wrap">
           <input 
             type="file" 
             ref={fileInputRef}
@@ -147,22 +148,12 @@ export const ProfileView: React.FC = () => {
             className="hidden" 
           />
           
-          <button
-            onClick={handleImportClick}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border border-slate-700"
-            title="Importer un fichier JSON"
-          >
+          <button onClick={handleImportClick} className="btn-secondary hidden sm:flex items-center gap-2 px-3 py-2 rounded border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800" title="Importer">
             <Upload size={18} />
-            <span className="hidden sm:inline">Importer</span>
           </button>
 
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border border-slate-700"
-            title="Télécharger mes données (JSON)"
-          >
+          <button onClick={handleExport} className="btn-secondary hidden sm:flex items-center gap-2 px-3 py-2 rounded border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800" title="Exporter">
             <Download size={18} />
-            <span className="hidden sm:inline">Exporter</span>
           </button>
 
           <button
@@ -170,12 +161,21 @@ export const ProfileView: React.FC = () => {
             className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold transition-all shadow-lg ${
               status === 'saved' 
                 ? 'bg-emerald-600 text-white' 
-                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/20'
+                : 'bg-slate-700 hover:bg-slate-600 text-white'
             }`}
           >
             {status === 'saved' ? <CheckCircle2 size={20} /> : <Save size={20} />}
             {status === 'saved' ? 'Sauvegardé' : 'Sauvegarder'}
           </button>
+          
+          {onNavigateToSearch && (
+             <button 
+               onClick={onNavigateToSearch}
+               className="flex items-center gap-2 px-6 py-2 rounded-lg font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 ml-2"
+             >
+               Chercher un Job <ArrowRight size={18} />
+             </button>
+          )}
         </div>
       </div>
 
@@ -201,15 +201,23 @@ export const ProfileView: React.FC = () => {
               value={profile.bio}
               onChange={(e) => updateField('bio', e.target.value)}
             />
+            <p className="text-xs text-slate-500 mt-1">L'IA réécrira ce texte pour chaque offre.</p>
           </div>
            <div className="mb-4">
-            <label className="block text-slate-400 text-sm font-semibold mb-2">Compétences (séparées par des virgules)</label>
+            <label className="block text-slate-400 text-sm font-semibold mb-2">Compétences</label>
             <input 
               className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
               placeholder="React, TypeScript, Node.js, Gestion de projet..."
               value={profile.skills}
               onChange={(e) => updateField('skills', e.target.value)}
             />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {profile.skills.split(',').map((skill, i) => skill.trim() && (
+                <span key={i} className="px-2 py-1 bg-indigo-900/50 text-indigo-300 rounded text-xs border border-indigo-500/20">
+                  {skill.trim()}
+                </span>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -220,7 +228,7 @@ export const ProfileView: React.FC = () => {
               <Briefcase size={20} className="text-indigo-400" /> Expériences
             </h2>
             <button 
-              onClick={() => addItem('experiences', { company: '', role: '', duration: '', description: '' })}
+              onClick={() => addItem('experiences', { company: '', role: '', startDate: '', endDate: '', isCurrent: false, description: '' })}
               className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"
             >
               <Plus size={16} /> Ajouter
@@ -236,10 +244,26 @@ export const ProfileView: React.FC = () => {
                 >
                   <Trash2 size={18} />
                 </button>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 pr-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8">
                   <Input label="Entreprise" value={exp.company} onChange={v => updateItem('experiences', exp.id, 'company', v)} />
                   <Input label="Rôle" value={exp.role} onChange={v => updateItem('experiences', exp.id, 'role', v)} />
-                  <Input label="Durée / Date" value={exp.duration} onChange={v => updateItem('experiences', exp.id, 'duration', v)} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                   <Input type="month" label="Début" value={exp.startDate} onChange={v => updateItem('experiences', exp.id, 'startDate', v)} />
+                   {!exp.isCurrent && (
+                     <Input type="month" label="Fin" value={exp.endDate} onChange={v => updateItem('experiences', exp.id, 'endDate', v)} />
+                   )}
+                   <div className="flex items-end pb-3">
+                      <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={exp.isCurrent}
+                          onChange={(e) => updateItem('experiences', exp.id, 'isCurrent', e.target.checked)}
+                          className="rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-indigo-500"
+                        />
+                        En poste actuellement
+                      </label>
+                   </div>
                 </div>
                 <textarea 
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white h-20 focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -277,7 +301,7 @@ export const ProfileView: React.FC = () => {
                 </button>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8">
                   <Input label="Nom du Projet" value={proj.name} onChange={v => updateItem('projects', proj.id, 'name', v)} />
-                  <Input label="Technologies (ex: React, Python)" value={proj.technologies} onChange={v => updateItem('projects', proj.id, 'technologies', v)} />
+                  <Input label="Technologies" value={proj.technologies} onChange={v => updateItem('projects', proj.id, 'technologies', v)} placeholder="React, Python..." />
                 </div>
                 <textarea 
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white h-20 focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -298,7 +322,7 @@ export const ProfileView: React.FC = () => {
               <GraduationCap size={20} className="text-indigo-400" /> Formation
             </h2>
             <button 
-              onClick={() => addItem('education', { school: '', degree: '', year: '' })}
+              onClick={() => addItem('education', { school: '', degree: '', startDate: '', endDate: '' })}
               className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"
             >
               <Plus size={16} /> Ajouter
@@ -313,10 +337,13 @@ export const ProfileView: React.FC = () => {
                 >
                   <Trash2 size={18} />
                 </button>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pr-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8 mb-3">
                   <Input label="École" value={edu.school} onChange={v => updateItem('education', edu.id, 'school', v)} />
                   <Input label="Diplôme" value={edu.degree} onChange={v => updateItem('education', edu.id, 'degree', v)} />
-                  <Input label="Année" value={edu.year} onChange={v => updateItem('education', edu.id, 'year', v)} />
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <Input type="month" label="Début" value={edu.startDate} onChange={v => updateItem('education', edu.id, 'startDate', v)} />
+                   <Input type="month" label="Fin" value={edu.endDate} onChange={v => updateItem('education', edu.id, 'endDate', v)} />
                 </div>
               </div>
             ))}
@@ -329,12 +356,12 @@ export const ProfileView: React.FC = () => {
   );
 };
 
-// Sub-components for cleaner code
-const Input: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string }> = ({ label, value, onChange, placeholder }) => (
+// Sub-components
+const Input: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }> = ({ label, value, onChange, placeholder, type = 'text' }) => (
   <div>
     <label className="block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">{label}</label>
     <input 
-      type="text"
+      type={type}
       className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
       value={value}
       onChange={(e) => onChange(e.target.value)}
