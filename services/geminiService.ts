@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { JobSearchResult, MasterProfile, ApplicationPackage } from "../types";
 
@@ -85,16 +84,31 @@ export const generateApplicationPackage = async (
       ${JSON.stringify(profile)}
 
       TA MISSION:
-      1. Analyse le "Gap" (Compétences manquantes). Si la description complète est fournie, sois rigoureux.
-      2. Réécris le "Bio" (Résumé) du profil pour qu'il utilise les mots-clés exacts de l'offre.
+      1. Analyse le "Gap" (Compétences manquantes).
+      
+      2. **RÉÉCRITURE DU PROFIL (Bio/Résumé)** :
+         - TEXTE DE BASE : Utilise le contenu du champ 'bio' du Master Profile.
+         - **CONTRAINTE ABSOLUE DE LONGUEUR : Résume ce texte pour qu'il tienne en MAXIMUM 5 à 7 lignes sur le PDF.** Sois extrêmement concis et percutant. Coupe les phrases superflues.
+         - OBLIGATOIRE : La phrase suivante doit apparaître (tu peux l'adapter légèrement pour la fluidité mais les infos doivent y être) : "Rythme d'alternance : 3 mois / 3 mois la première année et 6 mois / 6 mois la deuxième."
+         - TON : Direct, professionnel, orienté résultats.
+
       3. Sélectionne et reformule les expériences pour mettre en avant ce qui compte pour CE poste.
-      4. Rédige une Lettre de Motivation percutante (Ton: Professionnel mais moderne, Structure: Hook -> Value -> Call to Action).
+      
+      4. **Compétences Techniques (Skills):**
+         - CRUCIAL : Dans le champ 'skills', mets UNIQUEMENT les compétences TECHNIQUES (Langages de programmation, Outils, Logiciels).
+         - Ne mets PAS les Langues parlées ni les Soft Skills ici.
+         - FILTRE pour ne garder que les 8-12 compétences techniques les plus pertinentes pour CETTE offre.
+         - Si une compétence technique clé est demandée dans l'offre mais absente du profil, AJOUTE-LA.
+
+      5. **Langues et Intérêts :** Ne les modifie pas, nous utiliserons celles du profil original sauf si elles sont vides.
+      
+      6. Rédige une Lettre de Motivation percutante (Ton: Professionnel, Structure: Hook -> Value -> Call to Action).
 
       FORMAT DE RÉPONSE ATTENDU (JSON uniquement):
       {
         "matchScore": number (0-100),
         "missingSkills": string[],
-        "optimizedProfile": { ...structure identique au Master Profile mais adapté... },
+        "optimizedProfile": { ...structure identique au Master Profile... },
         "coverLetter": "Texte complet de la lettre en Markdown",
         "analysis": "Brève explication de la stratégie adoptée (2 phrases)"
       }
@@ -118,6 +132,29 @@ export const generateApplicationPackage = async (
     
     // Ensure the structure is valid, fallback if needed
     if (!data.optimizedProfile) data.optimizedProfile = profile;
+    
+    // SAFETY: Data Normalization
+    // 1. Skills: Ensure it's a string, not an array
+    if (data.optimizedProfile) {
+        if (Array.isArray(data.optimizedProfile.skills)) {
+            data.optimizedProfile.skills = (data.optimizedProfile.skills as any).join(', ');
+        }
+        
+        // 2. Fallback for Languages: If AI drops them, put original ones back
+        if (!data.optimizedProfile.languages || String(data.optimizedProfile.languages).length < 3) {
+            data.optimizedProfile.languages = profile.languages;
+        }
+
+        // 3. Fallback for Interests: If AI drops them, put original ones back
+        if (!data.optimizedProfile.interests || String(data.optimizedProfile.interests).length < 3) {
+            data.optimizedProfile.interests = profile.interests;
+        }
+        
+        // 4. Preserve Availability: AI usually doesn't return this field as it focuses on rewrites, so copy from master
+        if (!data.optimizedProfile.availability) {
+            data.optimizedProfile.availability = profile.availability;
+        }
+    }
     
     return data;
 

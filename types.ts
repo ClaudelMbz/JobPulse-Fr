@@ -1,4 +1,5 @@
 
+
 export enum AppView {
   STRATEGY = 'STRATEGY',
   SEARCH = 'SEARCH',
@@ -41,6 +42,7 @@ export interface Experience {
   endDate: string; // YYYY-MM or empty if current
   isCurrent: boolean;
   description: string;
+  location?: string; // Added location field
 }
 
 export interface Project {
@@ -66,7 +68,10 @@ export interface MasterProfile {
   linkedin: string;
   portfolio: string;
   bio: string; // The "About me" generic text
-  skills: string; // Comma separated for simplicity
+  availability: string; // NEW: The "Headline" (e.g., Recherche alternance Sept 2026...)
+  skills: string; // Comma separated for simplicity (Technical)
+  languages: string; // Added: Linguistic skills
+  interests: string; // Added: Hobbies/Interests
   experiences: Experience[];
   projects: Project[];
   education: Education[];

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MasterProfile, Experience, Project, Education } from '../types';
-import { Save, User, Briefcase, Code, GraduationCap, Plus, Trash2, AlertCircle, CheckCircle2, Download, Upload, ArrowRight } from 'lucide-react';
+import { Save, User, Briefcase, Code, GraduationCap, Plus, Trash2, AlertCircle, CheckCircle2, Download, Upload, ArrowRight, CalendarClock } from 'lucide-react';
 import { AppView } from '../types';
 
 const EMPTY_PROFILE: MasterProfile = {
@@ -11,8 +10,11 @@ const EMPTY_PROFILE: MasterProfile = {
   location: '',
   linkedin: '',
   portfolio: '',
-  bio: '',
+  bio: "Étudiant en ingénierie animé par une profonde passion pour le développement web full-stack et la conception de systèmes avancés. Je combine des compétences techniques solides en développement front-end et back-end (JavaScript, Python, MongoDB, SQL), avec une approche rigoureuse et une curiosité constante pour les architectures modernes et les workflows DevOps. Motivé par les environnements techniques exigeants, je suis autonome et orienté(e) résultats, capable de construire rapidement des solutions fiables. Mes projets, tels que des bots Telegram et des pipelines ETL automatisés, démontrent ma capacité à intégrer divers environnements, structurer la donnée et déployer des workflows end-to-end, tout en m'adaptant aux méthodologies agiles.",
+  availability: "RECHERCHE D'ALTERNANCE A PARTIR DE SEPTEMBRE 2026",
   skills: '',
+  languages: 'Francais ( Natif ), Anglais (Courant)',
+  interests: 'Lecture, Internet, Football, Musique',
   experiences: [],
   projects: [],
   education: []
@@ -33,7 +35,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
     const saved = localStorage.getItem('jobpulse_master_profile');
     if (saved) {
       try {
-        setProfile(JSON.parse(saved));
+        // Merge with empty profile to ensure new fields (languages, interests, availability) exist if old data is loaded
+        const parsed = JSON.parse(saved);
+        setProfile({ ...EMPTY_PROFILE, ...parsed });
       } catch (e) {
         console.error("Failed to parse profile", e);
       }
@@ -193,30 +197,66 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
             <Input label="LinkedIn URL" value={profile.linkedin} onChange={v => updateField('linkedin', v)} placeholder="linkedin.com/in/johndoe" />
             <Input label="Portfolio / GitHub" value={profile.portfolio} onChange={v => updateField('portfolio', v)} placeholder="github.com/johndoe" />
           </div>
+
           <div className="mb-4">
-            <label className="block text-slate-400 text-sm font-semibold mb-2">Bio / Résumé Professionnel</label>
+             <label className="block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1 flex items-center gap-2">
+                <CalendarClock size={14} className="text-indigo-400" /> Disponibilité & Rythme (Apparaît en Haut du CV)
+             </label>
+             <input 
+               className="w-full bg-slate-900 border border-indigo-900/50 rounded-lg px-3 py-2 text-indigo-100 focus:ring-1 focus:ring-indigo-500 outline-none transition-all font-bold placeholder:font-normal"
+               value={profile.availability || ''}
+               onChange={(e) => updateField('availability', e.target.value)}
+               placeholder="RECHERCHE D'ALTERNANCE A PARTIR DE SEPTEMBRE 2026"
+             />
+             <p className="text-xs text-slate-500 mt-1">Ce texte sera affiché en évidence sous votre nom sur le CV. Soyez précis.</p>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Bio / Résumé Professionnel</label>
             <textarea 
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white h-24 focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="Je suis un étudiant passionné par..."
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white h-48 focus:ring-2 focus:ring-indigo-500 outline-none"
+              placeholder="Étudiant en ingénierie..."
               value={profile.bio}
               onChange={(e) => updateField('bio', e.target.value)}
             />
-            <p className="text-xs text-slate-500 mt-1">L'IA réécrira ce texte pour chaque offre.</p>
+            <p className="text-xs text-slate-500 mt-1">Utilisez le texte de référence. L'IA y ajoutera le rythme d'alternance automatiquement.</p>
           </div>
+        </section>
+
+        {/* 1.5 SKILLS & INTERESTS */}
+        <section className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <Code size={20} className="text-indigo-400" /> Compétences & Intérêts
+          </h2>
            <div className="mb-4">
-            <label className="block text-slate-400 text-sm font-semibold mb-2">Compétences</label>
+            <label className="block text-slate-400 text-sm font-semibold mb-2">Compétences Techniques (Tous vos Skills)</label>
             <input 
               className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="React, TypeScript, Node.js, Gestion de projet..."
+              placeholder="React, TypeScript, Node.js, Gestion de projet, Excel..."
               value={profile.skills}
               onChange={(e) => updateField('skills', e.target.value)}
             />
-            <div className="flex flex-wrap gap-2 mt-2">
-              {profile.skills.split(',').map((skill, i) => skill.trim() && (
-                <span key={i} className="px-2 py-1 bg-indigo-900/50 text-indigo-300 rounded text-xs border border-indigo-500/20">
-                  {skill.trim()}
-                </span>
-              ))}
+            <p className="text-xs text-slate-500 mt-1">Séparez par des virgules. L'IA filtrera cette liste pour ne garder que le pertinent.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-400 text-sm font-semibold mb-2">Langues</label>
+              <input 
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                placeholder="Français (Natif), Anglais (Courant)..."
+                value={profile.languages}
+                onChange={(e) => updateField('languages', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-sm font-semibold mb-2">Centres d'Intérêts</label>
+              <input 
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                placeholder="Lecture, Sports, Tech..."
+                value={profile.interests}
+                onChange={(e) => updateField('interests', e.target.value)}
+              />
             </div>
           </div>
         </section>
@@ -228,7 +268,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
               <Briefcase size={20} className="text-indigo-400" /> Expériences
             </h2>
             <button 
-              onClick={() => addItem('experiences', { company: '', role: '', startDate: '', endDate: '', isCurrent: false, description: '' })}
+              onClick={() => addItem('experiences', { company: '', role: '', location: '', startDate: '', endDate: '', isCurrent: false, description: '' })}
               className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"
             >
               <Plus size={16} /> Ajouter
@@ -247,6 +287,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8">
                   <Input label="Entreprise" value={exp.company} onChange={v => updateItem('experiences', exp.id, 'company', v)} />
                   <Input label="Rôle" value={exp.role} onChange={v => updateItem('experiences', exp.id, 'role', v)} />
+                </div>
+                <div className="mb-3 pr-8">
+                  <Input label="Lieu" value={exp.location || ''} onChange={v => updateItem('experiences', exp.id, 'location', v)} placeholder="ex: Paris" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                    <Input type="month" label="Début" value={exp.startDate} onChange={v => updateItem('experiences', exp.id, 'startDate', v)} />

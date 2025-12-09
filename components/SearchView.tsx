@@ -481,7 +481,8 @@ export const SearchView: React.FC = () => {
                    <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
                       <h4 className="text-emerald-400 font-bold mb-3">Compétences Mises en Avant</h4>
                       <div className="flex flex-wrap gap-2">
-                         {generatedPackage.optimizedProfile.skills.split(',').map((skill, i) => (
+                         {/* Safe split logic for mixed types */}
+                         {String(generatedPackage.optimizedProfile.skills || '').split(',').map((skill, i) => (
                            <span key={i} className="px-2 py-1 bg-slate-700 text-white text-xs rounded border border-slate-600">
                              {skill.trim()}
                            </span>
