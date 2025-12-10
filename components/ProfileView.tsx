@@ -14,7 +14,7 @@ const EMPTY_PROFILE: MasterProfile = {
   availability: "RECHERCHE D'ALTERNANCE A PARTIR DE SEPTEMBRE 2026",
   skills: '',
   languages: 'Francais ( Natif ), Anglais (Courant)',
-  interests: 'Lecture, Internet, Football, Musique',
+  interests: 'Sport (Foot, Basket), Lecture, Internet, Méditation, Musique',
   experiences: [],
   projects: [],
   education: []

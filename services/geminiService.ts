@@ -65,6 +65,11 @@ export const generateApplicationPackage = async (
   try {
     const hasFullDescription = !!fullDescription && fullDescription.length > 50;
     
+    // --- FALLBACK CONSTANTS FOR SECURITY ---
+    // If the profile coming from localStorage is missing these fields, we force them here.
+    const DEFAULT_LANGUAGES = "Francais ( Natif ), Anglais (Courant)";
+    const DEFAULT_INTERESTS = "Sport (Foot, Basket), Lecture, Internet, Méditation, Musique";
+    
     const prompt = `
       CONTEXTE:
       Tu es un expert en recrutement et ATS (Applicant Tracking Systems).
@@ -88,21 +93,22 @@ export const generateApplicationPackage = async (
       
       2. **RÉÉCRITURE DU PROFIL (Bio/Résumé)** :
          - TEXTE DE BASE : Utilise le contenu du champ 'bio' du Master Profile.
-         - **CONTRAINTE ABSOLUE DE LONGUEUR : Résume ce texte pour qu'il tienne en MAXIMUM 5 à 7 lignes sur le PDF.** Sois extrêmement concis et percutant. Coupe les phrases superflues.
-         - OBLIGATOIRE : La phrase suivante doit apparaître (tu peux l'adapter légèrement pour la fluidité mais les infos doivent y être) : "Rythme d'alternance : 3 mois / 3 mois la première année et 6 mois / 6 mois la deuxième."
+         - **CONTRAINTE ABSOLUE DE LONGUEUR : Synthétise ce texte pour qu'il tienne en MAXIMUM 5 à 7 lignes (environ 80-100 mots).** C'est impératif pour que le CV tienne sur une page.
+         - OBLIGATOIRE : La phrase suivante doit être incluse : "Rythme d'alternance : 3 mois / 3 mois la première année et 6 mois / 6 mois la deuxième."
          - TON : Direct, professionnel, orienté résultats.
 
       3. Sélectionne et reformule les expériences pour mettre en avant ce qui compte pour CE poste.
       
       4. **Compétences Techniques (Skills):**
-         - CRUCIAL : Dans le champ 'skills', mets UNIQUEMENT les compétences TECHNIQUES (Langages de programmation, Outils, Logiciels).
-         - Ne mets PAS les Langues parlées ni les Soft Skills ici.
-         - FILTRE pour ne garder que les 8-12 compétences techniques les plus pertinentes pour CETTE offre.
-         - Si une compétence technique clé est demandée dans l'offre mais absente du profil, AJOUTE-LA.
+         - CRUCIAL : Dans le champ 'skills', mets UNIQUEMENT les compétences TECHNIQUES (Langages, Outils).
+         - NE METS PAS les Langues ni les Intérêts ici.
+         - Filtre pour garder les 8-12 plus pertinentes.
+         - Si une compétence technique manque dans le profil mais est requise, ajoute-la.
 
-      5. **Langues et Intérêts :** Ne les modifie pas, nous utiliserons celles du profil original sauf si elles sont vides.
+      5. **Langues et Intérêts :** Ignore-les dans ta génération, nous utiliserons celles du profil original par sécurité.
       
       6. Rédige une Lettre de Motivation percutante (Ton: Professionnel, Structure: Hook -> Value -> Call to Action).
+         - **SIGNATURE : Signe uniquement avec "Prénom Nom". NE RAJOUTE PAS d'email, de téléphone ou de lien LinkedIn après la signature.**
 
       FORMAT DE RÉPONSE ATTENDU (JSON uniquement):
       {
@@ -134,23 +140,18 @@ export const generateApplicationPackage = async (
     if (!data.optimizedProfile) data.optimizedProfile = profile;
     
     // SAFETY: Data Normalization
-    // 1. Skills: Ensure it's a string, not an array
     if (data.optimizedProfile) {
         if (Array.isArray(data.optimizedProfile.skills)) {
             data.optimizedProfile.skills = (data.optimizedProfile.skills as any).join(', ');
         }
         
-        // 2. Fallback for Languages: If AI drops them, put original ones back
-        if (!data.optimizedProfile.languages || String(data.optimizedProfile.languages).length < 3) {
-            data.optimizedProfile.languages = profile.languages;
-        }
-
-        // 3. Fallback for Interests: If AI drops them, put original ones back
-        if (!data.optimizedProfile.interests || String(data.optimizedProfile.interests).length < 3) {
-            data.optimizedProfile.interests = profile.interests;
-        }
+        // --- ULTIMATE SAFETY NET ---
+        // We force the values from the profile OR the defaults if the profile was empty/old.
+        // This solves the issue of missing sections in PDF.
+        data.optimizedProfile.languages = profile.languages || DEFAULT_LANGUAGES;
+        data.optimizedProfile.interests = profile.interests || DEFAULT_INTERESTS;
         
-        // 4. Preserve Availability: AI usually doesn't return this field as it focuses on rewrites, so copy from master
+        // Preserve Availability
         if (!data.optimizedProfile.availability) {
             data.optimizedProfile.availability = profile.availability;
         }
