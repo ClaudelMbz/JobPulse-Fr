@@ -4,7 +4,8 @@ export enum AppView {
   STRATEGY = 'STRATEGY',
   SEARCH = 'SEARCH',
   CHAT = 'CHAT',
-  PROFILE = 'PROFILE'
+  PROFILE = 'PROFILE',
+  SCRAPER = 'SCRAPER'
 }
 
 export interface JobMethod {

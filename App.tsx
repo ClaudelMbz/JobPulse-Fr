@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { AppView } from './types';
 import { AnalysisView } from './components/AnalysisView';
 import { SearchView } from './components/SearchView';
 import { ProfileView } from './components/ProfileView';
-import { Briefcase, LayoutDashboard, Menu, User } from 'lucide-react';
+import { ScraperView } from './components/ScraperView';
+import { Briefcase, LayoutDashboard, Menu, User, Bot } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.STRATEGY);
@@ -60,6 +60,21 @@ const App: React.FC = () => {
               <Briefcase size={20} />
               Recherche Active (IA)
             </button>
+
+            {/* Separator */}
+            <div className="h-px bg-slate-800 my-4 mx-4"></div>
+
+            <button 
+              onClick={() => { setCurrentView(AppView.SCRAPER); setIsSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                currentView === AppView.SCRAPER
+                  ? 'bg-pink-600/10 text-pink-400 border border-pink-600/20' 
+                  : 'text-slate-400 hover:bg-slate-900 hover:text-pink-400'
+              }`}
+            >
+              <Bot size={20} />
+              Laboratoire (Test)
+            </button>
           </nav>
         </div>
 
@@ -101,6 +116,10 @@ const App: React.FC = () => {
         
         {currentView === AppView.SEARCH && (
           <SearchView />
+        )}
+
+        {currentView === AppView.SCRAPER && (
+          <ScraperView onNavigateToSearch={() => setCurrentView(AppView.SEARCH)} />
         )}
       </main>
     </div>

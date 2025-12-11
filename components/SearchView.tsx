@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { searchJobsWithGemini, generateApplicationPackage } from '../services/geminiService';
 import { JobSearchResult, MasterProfile, ApplicationPackage } from '../types';
 import { Search, MapPin, Briefcase, ExternalLink, Loader2, Sparkles, Filter, BrainCircuit, X, CheckCircle2, ArrowRight, FileText, AlertTriangle, ChevronLeft, UserCheck, Download, Zap, ClipboardPaste } from 'lucide-react';
@@ -26,6 +25,30 @@ export const SearchView: React.FC = () => {
   const [previewMode, setPreviewMode] = useState<'cv' | 'letter' | null>(null);
   const [downloadingCv, setDownloadingCv] = useState(false);
   const [downloadingLetter, setDownloadingLetter] = useState(false);
+
+  // Check for Scraped Data on Mount
+  useEffect(() => {
+    const scrapedData = sessionStorage.getItem('jobpulse_temp_job_description');
+    if (scrapedData) {
+      // 1. Create a placeholder Job Object so the modal opens
+      const importedJob: JobSearchResult = {
+        title: "Nouvelle Offre Importée",
+        company: "Entreprise Inconnue (À éditer)",
+        location: "France",
+        url: "",
+        snippet: "Offre importée depuis le Scraper. Veuillez vérifier le titre et l'entreprise avant de générer.",
+        source: "Import Scraper"
+      };
+
+      // 2. Set State
+      setSelectedJob(importedJob);
+      setFullDescription(scrapedData);
+      setShowPrecisionMode(true);
+
+      // 3. Clear storage to avoid reopening on refresh
+      sessionStorage.removeItem('jobpulse_temp_job_description');
+    }
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,12 +282,26 @@ export const SearchView: React.FC = () => {
                   <h3 className="text-2xl font-bold text-white mb-1">
                     {previewMode === 'letter' ? 'Lettre de Motivation' : 
                      previewMode === 'cv' ? 'CV Optimisé (Aperçu)' : 
-                     selectedJob.title}
+                     (
+                       selectedJob.source === 'Import Scraper' ? (
+                          <input 
+                            value={selectedJob.title}
+                            onChange={(e) => setSelectedJob({...selectedJob, title: e.target.value})}
+                            className="bg-transparent border-b border-indigo-500 focus:outline-none w-full"
+                          />
+                       ) : selectedJob.title
+                     )}
                   </h3>
                   {!previewMode && (
                     <div className="flex items-center gap-3 text-slate-400">
                       <span className="bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-sm font-medium border border-indigo-500/20">
-                        {selectedJob.company}
+                         {selectedJob.source === 'Import Scraper' ? (
+                          <input 
+                            value={selectedJob.company}
+                            onChange={(e) => setSelectedJob({...selectedJob, company: e.target.value})}
+                            className="bg-transparent border-none focus:outline-none w-32"
+                          />
+                       ) : selectedJob.company}
                       </span>
                       <span className="flex items-center gap-1 text-sm"><MapPin size={14} /> {selectedJob.location}</span>
                     </div>
@@ -290,16 +327,18 @@ export const SearchView: React.FC = () => {
                     <p className="text-slate-300 leading-relaxed">
                       {selectedJob.snippet}
                     </p>
-                    <div className="mt-4 pt-4 border-t border-slate-700/50">
-                      <a 
-                        href={selectedJob.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
-                      >
-                        Voir l'offre originale sur {selectedJob.source} <ExternalLink size={14} />
-                      </a>
-                    </div>
+                    {selectedJob.url && (
+                        <div className="mt-4 pt-4 border-t border-slate-700/50">
+                        <a 
+                            href={selectedJob.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+                        >
+                            Voir l'offre originale sur {selectedJob.source} <ExternalLink size={14} />
+                        </a>
+                        </div>
+                    )}
                   </div>
 
                   {/* PRECISION MODE SECTION */}
@@ -314,7 +353,9 @@ export const SearchView: React.FC = () => {
                            </div>
                            <div>
                               <h4 className="text-white font-bold text-sm">Mode Précision (Recommandé)</h4>
-                              <p className="text-xs text-slate-400">Collez la description complète pour une candidature parfaite.</p>
+                              <p className="text-xs text-slate-400">
+                                {showPrecisionMode ? 'Description complète chargée' : 'Collez la description complète pour une candidature parfaite.'}
+                              </p>
                            </div>
                         </div>
                         <div className={`transform transition-transform ${showPrecisionMode ? 'rotate-90' : ''} text-slate-500`}>
@@ -329,12 +370,17 @@ export const SearchView: React.FC = () => {
                                 value={fullDescription}
                                 onChange={(e) => setFullDescription(e.target.value)}
                                 placeholder="Allez sur le lien de l'offre, copiez tout le texte, et collez-le ici..."
-                                className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white h-32 focus:ring-2 focus:ring-indigo-500 outline-none placeholder:text-slate-600"
+                                className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white h-64 focus:ring-2 focus:ring-indigo-500 outline-none placeholder:text-slate-600 custom-scrollbar"
                               />
-                              <div className="absolute bottom-3 right-3 pointer-events-none">
-                                 <ClipboardPaste className="text-slate-700" size={16} />
+                              <div className="absolute bottom-3 right-3 pointer-events-none bg-slate-800/80 p-1 rounded">
+                                 <ClipboardPaste className="text-slate-400" size={16} />
                               </div>
                            </div>
+                           {selectedJob.source === 'Import Scraper' && (
+                               <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+                                   <CheckCircle2 size={12}/> Texte importé automatiquement du Scraper. Vérifiez le titre et l'entreprise en haut.
+                               </p>
+                           )}
                         </div>
                      )}
                   </div>
