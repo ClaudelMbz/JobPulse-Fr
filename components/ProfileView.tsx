@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MasterProfile, Experience, Project, Education } from '../types';
-import { Save, User, Briefcase, Code, GraduationCap, Plus, Trash2, AlertCircle, CheckCircle2, Download, Upload, ArrowRight, CalendarClock } from 'lucide-react';
-import { AppView } from '../types';
+import { MasterProfile, Experience, Project, Education, Certification } from '../types';
+import { Save, User, Briefcase, Code, GraduationCap, Plus, Trash2, AlertCircle, CheckCircle2, Download, Upload, ArrowRight, CalendarClock, Award } from 'lucide-react';
 
 const EMPTY_PROFILE: MasterProfile = {
   fullName: '',
@@ -15,12 +14,12 @@ const EMPTY_PROFILE: MasterProfile = {
   skills: '',
   languages: 'Francais ( Natif ), Anglais (Courant)',
   interests: 'Sport (Foot, Basket), Lecture, Internet, Méditation, Musique',
+  certifications: [],
   experiences: [],
   projects: [],
   education: []
 };
 
-// We add a prop to allow navigation change from here
 interface ProfileViewProps {
   onNavigateToSearch?: () => void;
 }
@@ -30,14 +29,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('jobpulse_master_profile');
     if (saved) {
       try {
-        // Merge with empty profile to ensure new fields (languages, interests, availability) exist if old data is loaded
         const parsed = JSON.parse(saved);
-        setProfile({ ...EMPTY_PROFILE, ...parsed });
+        // Ensure certifications is always an array to avoid .trim() or .map errors
+        setProfile({ 
+          ...EMPTY_PROFILE, 
+          ...parsed,
+          certifications: Array.isArray(parsed.certifications) ? parsed.certifications : []
+        });
       } catch (e) {
         console.error("Failed to parse profile", e);
       }
@@ -75,8 +77,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
         const content = e.target?.result as string;
         const parsedProfile = JSON.parse(content);
         if (parsedProfile && typeof parsedProfile === 'object') {
-          setProfile(prev => ({ ...EMPTY_PROFILE, ...parsedProfile }));
-          localStorage.setItem('jobpulse_master_profile', JSON.stringify(parsedProfile));
+          const newProfile = { 
+            ...EMPTY_PROFILE, 
+            ...parsedProfile,
+            certifications: Array.isArray(parsedProfile.certifications) ? parsedProfile.certifications : []
+          };
+          setProfile(newProfile);
+          localStorage.setItem('jobpulse_master_profile', JSON.stringify(newProfile));
           setStatus('saved');
           setTimeout(() => setStatus('idle'), 3000);
         } else {
@@ -95,7 +102,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
-  const addItem = (key: 'experiences' | 'projects' | 'education', emptyItem: any) => {
+  const addItem = (key: 'experiences' | 'projects' | 'education' | 'certifications', emptyItem: any) => {
     setProfile(prev => ({
       ...prev,
       [key]: [...(prev[key] as any[]), { ...emptyItem, id: crypto.randomUUID() }]
@@ -138,45 +145,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
             <User className="text-indigo-500" />
             Mon Profil
           </h1>
-          <p className="text-slate-400 text-sm">
-            Base de données brute utilisée par l'IA.
-          </p>
+          <p className="text-slate-400 text-sm">Base de données utilisée par l'IA.</p>
         </div>
         
         <div className="flex items-center gap-2 flex-wrap">
-          <input 
-            type="file" 
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept=".json"
-            className="hidden" 
-          />
-          
-          <button onClick={handleImportClick} className="btn-secondary hidden sm:flex items-center gap-2 px-3 py-2 rounded border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800" title="Importer">
-            <Upload size={18} />
-          </button>
-
-          <button onClick={handleExport} className="btn-secondary hidden sm:flex items-center gap-2 px-3 py-2 rounded border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800" title="Exporter">
-            <Download size={18} />
-          </button>
-
-          <button
-            onClick={handleSave}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold transition-all shadow-lg ${
-              status === 'saved' 
-                ? 'bg-emerald-600 text-white' 
-                : 'bg-slate-700 hover:bg-slate-600 text-white'
-            }`}
-          >
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" />
+          <button onClick={handleImportClick} className="btn-secondary hidden sm:flex items-center gap-2 px-3 py-2 rounded border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800" title="Importer"><Upload size={18} /></button>
+          <button onClick={handleExport} className="btn-secondary hidden sm:flex items-center gap-2 px-3 py-2 rounded border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800" title="Exporter"><Download size={18} /></button>
+          <button onClick={handleSave} className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold transition-all shadow-lg ${status === 'saved' ? 'bg-emerald-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}>
             {status === 'saved' ? <CheckCircle2 size={20} /> : <Save size={20} />}
             {status === 'saved' ? 'Sauvegardé' : 'Sauvegarder'}
           </button>
-          
           {onNavigateToSearch && (
-             <button 
-               onClick={onNavigateToSearch}
-               className="flex items-center gap-2 px-6 py-2 rounded-lg font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 ml-2"
-             >
+             <button onClick={onNavigateToSearch} className="flex items-center gap-2 px-6 py-2 rounded-lg font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 ml-2">
                Chercher un Job <ArrowRight size={18} />
              </button>
           )}
@@ -184,237 +165,128 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigateToSearch }) 
       </div>
 
       <div className="space-y-8">
-        {/* 1. Coordonnées & Bio */}
+        {/* General Info */}
         <section className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <User size={20} className="text-indigo-400" /> Informations Générales
-          </h2>
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><User size={20} className="text-indigo-400" /> Informations Générales</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <Input label="Nom Complet" value={profile.fullName} onChange={v => updateField('fullName', v)} placeholder="John Doe" />
-            <Input label="Email" value={profile.email} onChange={v => updateField('email', v)} placeholder="john@example.com" />
-            <Input label="Téléphone" value={profile.phone} onChange={v => updateField('phone', v)} placeholder="06 12 34 56 78" />
-            <Input label="Localisation" value={profile.location} onChange={v => updateField('location', v)} placeholder="Paris, France" />
-            <Input label="LinkedIn URL" value={profile.linkedin} onChange={v => updateField('linkedin', v)} placeholder="linkedin.com/in/johndoe" />
-            <Input label="Portfolio / GitHub" value={profile.portfolio} onChange={v => updateField('portfolio', v)} placeholder="github.com/johndoe" />
+            <Input label="Nom Complet" value={profile.fullName} onChange={v => updateField('fullName', v)} />
+            <Input label="Email" value={profile.email} onChange={v => updateField('email', v)} />
+            <Input label="Téléphone" value={profile.phone} onChange={v => updateField('phone', v)} />
+            <Input label="Localisation" value={profile.location} onChange={v => updateField('location', v)} />
+            <Input label="LinkedIn URL" value={profile.linkedin} onChange={v => updateField('linkedin', v)} />
+            <Input label="Portfolio / GitHub" value={profile.portfolio} onChange={v => updateField('portfolio', v)} />
           </div>
-
           <div className="mb-4">
-             <label className="block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1 flex items-center gap-2">
-                <CalendarClock size={14} className="text-indigo-400" /> Disponibilité & Rythme (Apparaît en Haut du CV)
-             </label>
-             <input 
-               className="w-full bg-slate-900 border border-indigo-900/50 rounded-lg px-3 py-2 text-indigo-100 focus:ring-1 focus:ring-indigo-500 outline-none transition-all font-bold placeholder:font-normal"
-               value={profile.availability || ''}
-               onChange={(e) => updateField('availability', e.target.value)}
-               placeholder="RECHERCHE D'ALTERNANCE A PARTIR DE SEPTEMBRE 2026"
-             />
-             <p className="text-xs text-slate-500 mt-1">Ce texte sera affiché en évidence sous votre nom sur le CV. Soyez précis.</p>
+             <label className="block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1 flex items-center gap-2"><CalendarClock size={14} className="text-indigo-400" /> Disponibilité & Rythme</label>
+             <input className="w-full bg-slate-900 border border-indigo-900/50 rounded-lg px-3 py-2 text-indigo-100 focus:ring-1 focus:ring-indigo-500 outline-none transition-all font-bold" value={profile.availability} onChange={(e) => updateField('availability', e.target.value)} />
           </div>
-
           <div className="mb-4">
             <label className="block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Bio / Résumé Professionnel</label>
-            <textarea 
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white h-48 focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="Étudiant en ingénierie..."
-              value={profile.bio}
-              onChange={(e) => updateField('bio', e.target.value)}
-            />
-            <p className="text-xs text-slate-500 mt-1">Utilisez le texte de référence. L'IA y ajoutera le rythme d'alternance automatiquement.</p>
+            <textarea className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white h-48 focus:ring-2 focus:ring-indigo-500 outline-none" value={profile.bio} onChange={(e) => updateField('bio', e.target.value)} />
           </div>
         </section>
 
-        {/* 1.5 SKILLS & INTERESTS */}
+        {/* Skills & Interests */}
         <section className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Code size={20} className="text-indigo-400" /> Compétences & Intérêts
-          </h2>
+           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><Code size={20} className="text-indigo-400" /> Compétences & Intérêts</h2>
            <div className="mb-4">
-            <label className="block text-slate-400 text-sm font-semibold mb-2">Compétences Techniques (Tous vos Skills)</label>
-            <input 
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
-              placeholder="React, TypeScript, Node.js, Gestion de projet, Excel..."
-              value={profile.skills}
-              onChange={(e) => updateField('skills', e.target.value)}
-            />
-            <p className="text-xs text-slate-500 mt-1">Séparez par des virgules. L'IA filtrera cette liste pour ne garder que le pertinent.</p>
+            <label className="block text-slate-400 text-sm font-semibold mb-2">Compétences Techniques</label>
+            <input className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none" value={profile.skills} onChange={(e) => updateField('skills', e.target.value)} />
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-slate-400 text-sm font-semibold mb-2">Langues</label>
-              <input 
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                placeholder="Français (Natif), Anglais (Courant)..."
-                value={profile.languages}
-                onChange={(e) => updateField('languages', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-slate-400 text-sm font-semibold mb-2">Centres d'Intérêts</label>
-              <input 
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                placeholder="Lecture, Sports, Tech..."
-                value={profile.interests}
-                onChange={(e) => updateField('interests', e.target.value)}
-              />
-            </div>
+            <div><label className="block text-slate-400 text-sm font-semibold mb-2">Langues</label><input className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white" value={profile.languages} onChange={(e) => updateField('languages', e.target.value)} /></div>
+            <div><label className="block text-slate-400 text-sm font-semibold mb-2">Centres d'Intérêts</label><input className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white" value={profile.interests} onChange={(e) => updateField('interests', e.target.value)} /></div>
           </div>
         </section>
 
-        {/* 2. Expériences */}
+        {/* Certifications (New List UI) */}
         <section className="bg-slate-800 border border-slate-700 rounded-xl p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Briefcase size={20} className="text-indigo-400" /> Expériences
-            </h2>
-            <button 
-              onClick={() => addItem('experiences', { company: '', role: '', location: '', startDate: '', endDate: '', isCurrent: false, description: '' })}
-              className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"
-            >
+            <h2 className="text-xl font-bold text-white flex items-center gap-2"><Award size={20} className="text-indigo-400" /> Certifications</h2>
+            <button onClick={() => addItem('certifications', { name: '', issuer: '', date: '', description: '' })} className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors">
               <Plus size={16} /> Ajouter
             </button>
           </div>
-          
+          <div className="space-y-4">
+            {profile.certifications.map((cert) => (
+              <div key={cert.id} className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 relative group">
+                <button onClick={() => removeItem('certifications', cert.id)} className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={18} /></button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8">
+                  <Input label="Nom de la Certification" value={cert.name} onChange={v => updateItem('certifications', cert.id, 'name', v)} />
+                  <Input label="Organisme Émetteur" value={cert.issuer} onChange={v => updateItem('certifications', cert.id, 'issuer', v)} />
+                </div>
+                <div className="mb-3"><Input type="text" label="Date (ex: Oct 2023)" value={cert.date} onChange={v => updateItem('certifications', cert.id, 'date', v)} /></div>
+                <textarea className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white h-16 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Description courte (optionnelle)..." value={cert.description || ''} onChange={(e) => updateItem('certifications', cert.id, 'description', e.target.value)} />
+              </div>
+            ))}
+            {profile.certifications.length === 0 && <EmptyState text="Aucune certification ajoutée." />}
+          </div>
+        </section>
+
+        {/* Experiences */}
+        <section className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2"><Briefcase size={20} className="text-indigo-400" /> Expériences</h2>
+            <button onClick={() => addItem('experiences', { company: '', role: '', location: '', startDate: '', endDate: '', isCurrent: false, description: '' })} className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"><Plus size={16} /> Ajouter</button>
+          </div>
           <div className="space-y-4">
             {profile.experiences.map((exp) => (
               <div key={exp.id} className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 relative group">
-                <button 
-                  onClick={() => removeItem('experiences', exp.id)}
-                  className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8">
-                  <Input label="Entreprise" value={exp.company} onChange={v => updateItem('experiences', exp.id, 'company', v)} />
-                  <Input label="Rôle" value={exp.role} onChange={v => updateItem('experiences', exp.id, 'role', v)} />
-                </div>
-                <div className="mb-3 pr-8">
-                  <Input label="Lieu" value={exp.location || ''} onChange={v => updateItem('experiences', exp.id, 'location', v)} placeholder="ex: Paris" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                   <Input type="month" label="Début" value={exp.startDate} onChange={v => updateItem('experiences', exp.id, 'startDate', v)} />
-                   {!exp.isCurrent && (
-                     <Input type="month" label="Fin" value={exp.endDate} onChange={v => updateItem('experiences', exp.id, 'endDate', v)} />
-                   )}
-                   <div className="flex items-end pb-3">
-                      <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={exp.isCurrent}
-                          onChange={(e) => updateItem('experiences', exp.id, 'isCurrent', e.target.checked)}
-                          className="rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-indigo-500"
-                        />
-                        En poste actuellement
-                      </label>
-                   </div>
-                </div>
-                <textarea 
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white h-20 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  placeholder="Détails des missions..."
-                  value={exp.description}
-                  onChange={(e) => updateItem('experiences', exp.id, 'description', e.target.value)}
-                />
+                <button onClick={() => removeItem('experiences', exp.id)} className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={18} /></button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8"><Input label="Entreprise" value={exp.company} onChange={v => updateItem('experiences', exp.id, 'company', v)} /><Input label="Rôle" value={exp.role} onChange={v => updateItem('experiences', exp.id, 'role', v)} /></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3"><Input type="month" label="Début" value={exp.startDate} onChange={v => updateItem('experiences', exp.id, 'startDate', v)} />{!exp.isCurrent && <Input type="month" label="Fin" value={exp.endDate} onChange={v => updateItem('experiences', exp.id, 'endDate', v)} />}<div className="flex items-end pb-3"><label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer"><input type="checkbox" checked={exp.isCurrent} onChange={(e) => updateItem('experiences', exp.id, 'isCurrent', e.target.checked)} className="rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-indigo-500" />En poste</label></div></div>
+                <textarea className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white h-20 focus:ring-2 focus:ring-indigo-500 outline-none" value={exp.description} onChange={(e) => updateItem('experiences', exp.id, 'description', e.target.value)} />
               </div>
             ))}
-            {profile.experiences.length === 0 && <EmptyState text="Aucune expérience ajoutée." />}
+            {profile.experiences.length === 0 && <EmptyState text="Aucune expérience." />}
           </div>
         </section>
 
-        {/* 3. Projets */}
+        {/* Projects */}
         <section className="bg-slate-800 border border-slate-700 rounded-xl p-6">
            <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Code size={20} className="text-indigo-400" /> Projets
-            </h2>
-            <button 
-              onClick={() => addItem('projects', { name: '', technologies: '', description: '' })}
-              className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"
-            >
-              <Plus size={16} /> Ajouter
-            </button>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2"><Code size={20} className="text-indigo-400" /> Projets</h2>
+            <button onClick={() => addItem('projects', { name: '', technologies: '', description: '' })} className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"><Plus size={16} /> Ajouter</button>
           </div>
           <div className="space-y-4">
             {profile.projects.map((proj) => (
               <div key={proj.id} className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 relative group">
-                <button 
-                   onClick={() => removeItem('projects', proj.id)}
-                   className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8">
-                  <Input label="Nom du Projet" value={proj.name} onChange={v => updateItem('projects', proj.id, 'name', v)} />
-                  <Input label="Technologies" value={proj.technologies} onChange={v => updateItem('projects', proj.id, 'technologies', v)} placeholder="React, Python..." />
-                </div>
-                <textarea 
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white h-20 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  placeholder="Description du projet..."
-                  value={proj.description}
-                  onChange={(e) => updateItem('projects', proj.id, 'description', e.target.value)}
-                />
+                <button onClick={() => removeItem('projects', proj.id)} className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={18} /></button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8"><Input label="Projet" value={proj.name} onChange={v => updateItem('projects', proj.id, 'name', v)} /><Input label="Technologies" value={proj.technologies} onChange={v => updateItem('projects', proj.id, 'technologies', v)} /></div>
+                <textarea className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white h-20 focus:ring-2 focus:ring-indigo-500 outline-none" value={proj.description} onChange={(e) => updateItem('projects', proj.id, 'description', e.target.value)} />
               </div>
             ))}
-            {profile.projects.length === 0 && <EmptyState text="Aucun projet ajouté." />}
           </div>
         </section>
 
-         {/* 4. Formation */}
+         {/* Education */}
          <section className="bg-slate-800 border border-slate-700 rounded-xl p-6">
            <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <GraduationCap size={20} className="text-indigo-400" /> Formation
-            </h2>
-            <button 
-              onClick={() => addItem('education', { school: '', degree: '', startDate: '', endDate: '' })}
-              className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"
-            >
-              <Plus size={16} /> Ajouter
-            </button>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2"><GraduationCap size={20} className="text-indigo-400" /> Formation</h2>
+            <button onClick={() => addItem('education', { school: '', degree: '', startDate: '', endDate: '' })} className="flex items-center gap-1 text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded transition-colors"><Plus size={16} /> Ajouter</button>
           </div>
           <div className="space-y-4">
             {profile.education.map((edu) => (
               <div key={edu.id} className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 relative group">
-                <button 
-                   onClick={() => removeItem('education', edu.id)}
-                   className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8 mb-3">
-                  <Input label="École" value={edu.school} onChange={v => updateItem('education', edu.id, 'school', v)} />
-                  <Input label="Diplôme" value={edu.degree} onChange={v => updateItem('education', edu.id, 'degree', v)} />
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
-                   <Input type="month" label="Début" value={edu.startDate} onChange={v => updateItem('education', edu.id, 'startDate', v)} />
-                   <Input type="month" label="Fin" value={edu.endDate} onChange={v => updateItem('education', edu.id, 'endDate', v)} />
-                </div>
+                <button onClick={() => removeItem('education', edu.id)} className="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={18} /></button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8 mb-3"><Input label="École" value={edu.school} onChange={v => updateItem('education', edu.id, 'school', v)} /><Input label="Diplôme" value={edu.degree} onChange={v => updateItem('education', edu.id, 'degree', v)} /></div>
+                <div className="grid grid-cols-2 gap-4"><Input type="month" label="Début" value={edu.startDate} onChange={v => updateItem('education', edu.id, 'startDate', v)} /><Input type="month" label="Fin" value={edu.endDate} onChange={v => updateItem('education', edu.id, 'endDate', v)} /></div>
               </div>
             ))}
-            {profile.education.length === 0 && <EmptyState text="Aucune formation ajoutée." />}
           </div>
         </section>
-
       </div>
     </div>
   );
 };
 
-// Sub-components
 const Input: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }> = ({ label, value, onChange, placeholder, type = 'text' }) => (
   <div>
     <label className="block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">{label}</label>
-    <input 
-      type={type}
-      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-    />
+    <input type={type} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
   </div>
 );
 
 const EmptyState: React.FC<{ text: string }> = ({ text }) => (
-  <div className="flex items-center justify-center p-8 border border-dashed border-slate-700 rounded-lg text-slate-500 gap-2">
-    <AlertCircle size={18} /> {text}
-  </div>
+  <div className="flex items-center justify-center p-8 border border-dashed border-slate-700 rounded-lg text-slate-500 gap-2"><AlertCircle size={18} /> {text}</div>
 );

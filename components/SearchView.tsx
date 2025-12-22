@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { searchJobsWithGemini, generateApplicationPackage } from '../services/geminiService';
 import { JobSearchResult, MasterProfile, ApplicationPackage } from '../types';
-import { Search, MapPin, Briefcase, ExternalLink, Loader2, Sparkles, Filter, BrainCircuit, X, CheckCircle2, ArrowRight, FileText, AlertTriangle, ChevronLeft, UserCheck, Download, Zap, ClipboardPaste } from 'lucide-react';
+import { Search, MapPin, Briefcase, ExternalLink, Loader2, Sparkles, Filter, BrainCircuit, X, CheckCircle2, ArrowRight, FileText, AlertTriangle, ChevronLeft, UserCheck, Download, Zap, ClipboardPaste, Radar, Globe } from 'lucide-react';
 import { downloadCvPdf, downloadLetterPdf } from '../utils/pdfGenerator';
 
 export const SearchView: React.FC = () => {
   const [query, setQuery] = useState('Développeur React Alternance');
   const [location, setLocation] = useState('Paris');
+  const [searchMode, setSearchMode] = useState<'standard' | 'deep'>('standard');
   const [results, setResults] = useState<JobSearchResult[]>([]);
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -61,7 +62,8 @@ export const SearchView: React.FC = () => {
     setSelectedJob(null);
 
     try {
-      const { text, links } = await searchJobsWithGemini(query, location);
+      // PASSAGE DU MODE (Deep vs Standard)
+      const { text, links } = await searchJobsWithGemini(query, location, searchMode);
       setAnalysis(text);
       setResults(links);
     } catch (error) {
@@ -151,6 +153,41 @@ export const SearchView: React.FC = () => {
          </p>
       </div>
 
+      {/* SEARCH MODE TOGGLE - THE PRIME UPGRADE */}
+      <div className="flex justify-center mb-6">
+        <div className="bg-slate-800 p-1 rounded-xl flex gap-1 border border-slate-700">
+          <button 
+            onClick={() => setSearchMode('standard')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
+              searchMode === 'standard' 
+                ? 'bg-slate-700 text-white shadow-lg' 
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Globe size={16} /> Standard
+          </button>
+          <button 
+            onClick={() => setSearchMode('deep')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
+              searchMode === 'deep' 
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Radar size={16} /> X-Ray Deep Search (ATS)
+          </button>
+        </div>
+      </div>
+
+      {searchMode === 'deep' && (
+         <div className="max-w-3xl mx-auto mb-6 bg-indigo-900/20 border border-indigo-500/30 rounded-lg p-3 flex items-start gap-3 text-sm text-indigo-200">
+            <Zap className="shrink-0 mt-0.5 text-indigo-400" size={16} />
+            <p>
+              <strong>Mode X-Ray activé :</strong> L'IA va utiliser des "Google Dorks" (opérateurs avancés) pour scanner directement les bases de données des ATS (Lever, Greenhouse, WTTJ, etc.). Cela permet de trouver des offres souvent invisibles sur les agrégateurs classiques.
+            </p>
+         </div>
+      )}
+
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col md:flex-row gap-4 mb-8 sticky top-4 z-10 shadow-xl">
         <div className="flex-1 relative">
@@ -176,10 +213,12 @@ export const SearchView: React.FC = () => {
         <button 
           type="submit"
           disabled={loading}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 md:w-auto w-full disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 md:w-auto w-full disabled:opacity-50 disabled:cursor-not-allowed text-white
+             ${searchMode === 'deep' ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20 shadow-lg' : 'bg-slate-600 hover:bg-slate-500'}
+          `}
         >
           {loading ? <Loader2 className="animate-spin" /> : <Search size={20} />}
-          {loading ? 'Analyse...' : 'Scanner'}
+          {loading ? 'Hacking du Web...' : 'Scanner'}
         </button>
       </form>
 
@@ -203,7 +242,9 @@ export const SearchView: React.FC = () => {
                 <div 
                   key={idx} 
                   onClick={() => handleJobClick(job)}
-                  className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer group relative overflow-hidden"
+                  className={`border rounded-lg p-5 transition-all cursor-pointer group relative overflow-hidden
+                    ${searchMode === 'deep' ? 'bg-slate-900/80 border-indigo-500/50 hover:bg-slate-800' : 'bg-slate-800 border-slate-700 hover:border-indigo-500'}
+                  `}
                 >
                   <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-400">
                     <ArrowRight size={20} />
@@ -222,7 +263,9 @@ export const SearchView: React.FC = () => {
                     {job.snippet}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-slate-500">
-                     <span className="px-2 py-1 bg-slate-900 rounded border border-slate-700">Source: {job.source}</span>
+                     <span className={`px-2 py-1 rounded border  ${job.source.includes('ATS') ? 'bg-indigo-900/30 border-indigo-500/50 text-indigo-300' : 'bg-slate-900 border-slate-700'}`}>
+                       Source: {job.source}
+                     </span>
                   </div>
                 </div>
               ))}

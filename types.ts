@@ -1,5 +1,3 @@
-
-
 export enum AppView {
   STRATEGY = 'STRATEGY',
   SEARCH = 'SEARCH',
@@ -43,14 +41,14 @@ export interface Experience {
   endDate: string; // YYYY-MM or empty if current
   isCurrent: boolean;
   description: string;
-  location?: string; // Added location field
+  location?: string;
 }
 
 export interface Project {
   id: string;
   name: string;
   description: string;
-  technologies: string; // Comma separated string for simplicity in UI
+  technologies: string;
 }
 
 export interface Education {
@@ -61,6 +59,14 @@ export interface Education {
   endDate: string; // YYYY-MM
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  description?: string;
+}
+
 export interface MasterProfile {
   fullName: string;
   email: string;
@@ -68,11 +74,12 @@ export interface MasterProfile {
   location: string;
   linkedin: string;
   portfolio: string;
-  bio: string; // The "About me" generic text
-  availability: string; // NEW: The "Headline" (e.g., Recherche alternance Sept 2026...)
-  skills: string; // Comma separated for simplicity (Technical)
-  languages: string; // Added: Linguistic skills
-  interests: string; // Added: Hobbies/Interests
+  bio: string;
+  availability: string;
+  skills: string;
+  languages: string;
+  interests: string;
+  certifications: Certification[];
   experiences: Experience[];
   projects: Project[];
   education: Education[];
@@ -81,9 +88,9 @@ export interface MasterProfile {
 // --- GENERATED APPLICATION PACKAGE (STEP 3) ---
 
 export interface ApplicationPackage {
-  matchScore: number; // 0-100
+  matchScore: number;
   missingSkills: string[];
-  optimizedProfile: MasterProfile; // The profile rewritten for the job
-  coverLetter: string; // Markdown content
-  analysis: string; // Brief explanation of the strategy used
+  optimizedProfile: MasterProfile;
+  coverLetter: string;
+  analysis: string;
 }
