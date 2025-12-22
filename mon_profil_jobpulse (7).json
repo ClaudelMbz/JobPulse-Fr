@@ -1,0 +1,85 @@
+{
+  "fullName": "Claudel Mubenzem",
+  "email": "claudelmubenzem90@gmail.com",
+  "phone": "0605961489",
+  "location": "Ile-de-France, France",
+  "linkedin": "https://www.linkedin.com/in/claudel-mubenzem-47a9ba24b",
+  "portfolio": "https://github.com/ClaudelMbz",
+  "bio": "Étudiant en ingénierie passionné par l’intelligence artificielle, le machine learning et la conception de systèmes avancés. Je combine compétences techniques solides (Python, JavaScript, MongoDB, n8n, ETL, RAG, APIs, cloud) et une capacité à construire rapidement des solutions concrètes, fiables et orientées résultats.\nAutonome, rigoureux et très curieux, je développe des projets complets allant de l’automatisation intelligente à l’analyse de données, en passant par la création d’agents IA et de pipelines robustes.\n\nJ’ai notamment conçu plusieurs systèmes opérationnels, dont un bot Telegram avancé (JobFinder) en Python/Telethon avec pagination, favoris, abonnement aux catégories, notifications automatiques et backend MongoDB asynchrone. J’ai également développé des pipelines ETL assistés par IA, connectant Google Forms, Google Sheets, EngVision et des outils d’automatisation (n8n), combinant nettoyage intelligent, contextualisation, génération d’insights, et visualisation.\nCes projets démontrent ma capacité à intégrer plusieurs environnements, à structurer la donnée et à déployer des workflows end-to-end.\n\nJe m’intéresse fortement aux technologies émergentes : IA générative, automatisation avancée, data engineering, agents intelligents, blockchain et systèmes distribués. J’apprends très vite, j’expérimente beaucoup, et j’ai une approche orientée résolution de problèmes et amélioration continue.\nHabitué à travailler sur des projets multidisciplinaires, je suis capable de m’adapter rapidement, de documenter clairement mes solutions, et de collaborer efficacement dans des contextes techniques exigeants.",
+  "availability": "RECHERCHE D'ALTERNANCE A PARTIR DE SEPTEMBRE 2026",
+  "skills": "Sens de l’écoute, Conception électronique, Methodologie Scrum/Agile, Github Actions, LTspice, Test mécanique, AMDEC Processus, Génie électrique, Résolution de problèmes, Sens de l’organisation, Résolution de problèmes par analyse des causes profondes, Analyse fonctionnelle, Synthèse, Adaptation, Modélisation 3D, Technique de résolution des problèmes 8D, Électronique, Autonomie, Pragmatique, Communication interpersonnelle, Programmation, Documentation technique, Schémas électriques, Câblage, 5S, Visio, Connaissances en informatique, Compétences interpersonnelles, Lignes de production, Python, Travail d’équipe, Actions correctives, Bureautique, Outils de conception, Dépannage électrique, Microsoft Excel, SQL, Analyse de données statistiques, Cahier des charges fonctionnel, Visualisation de données, Amélioration continue, Microsoft Power BI, Extract Transform Load (ETL), Git, Gestion des risques, UML, Recherche opérationnelle, Problem Solving, Modélisation des données, Français, English",
+  "languages": "Francais ( Natif ), Anglais (Courant)",
+  "interests": "Sport (Foot, Basket), Lecture, Internet, Méditation, Musique",
+  "certifications": [
+    {
+      "name": "Associate Python Developper",
+      "issuer": "Datacamp",
+      "date": "novembre 2025",
+      "url": "https://www.datacamp.com/completed/statement-of-accomplishment/track/53a1301a7b099c15c61535187b94eeaf35cd4f25?utm_medium=organic_social&utm_campaign=sharewidget&utm_content=soa&utm_source=copylink",
+      "id": "03b7f450-01c7-4463-93e3-208ccd42df62"
+    },
+    {
+      "name": "CS50 Artificial Intelligence with Python",
+      "issuer": "Harvard Online",
+      "date": "juillet 2025",
+      "url": "https://cs50.harvard.edu/certificates/b4360597-56b4-40f4-8860-3288af164219",
+      "id": "39eefd2a-a990-4fec-8da3-4b91c25dd7e6"
+    },
+    {
+      "name": "Google Analytics 4",
+      "issuer": "Google",
+      "date": "Juin 2023",
+      "url": "",
+      "id": "7362a968-7b74-48c7-bb84-7cc8b56fe243"
+    }
+  ],
+  "experiences": [
+    {
+      "company": "DBD SARL",
+      "role": "Data Analyst & Implementation Industrielle",
+      "duration": "Juin 2025 -  Aout 2025",
+      "description": "Concevoir des modèles d'usines reproductibles intégrant coûts, prix, logistique, machines et ressources.\nRédiger des documents techniques détaillés (PRD) pour faciliter la mise en œuvre terrain.\nAnalyser les données industrielles pour appuyer les décisions stratégiques et valider la rentabilité.\nRediger un rapport journalier des ventes en autopilot (n8n)\nOptimiser les performances opérationnelles via l’analyse et la modélisation.\nAssurer le lien entre documentation technique, stratégie industrielle et data analysis.",
+      "id": "03f52ed1-a208-4dc9-8ca5-c9d9f9d4f3cf",
+      "startDate": "2025-06",
+      "endDate": "2025-08"
+    }
+  ],
+  "projects": [
+    {
+      "name": "EventClock AI",
+      "technologies": "Vite.js, Typescript",
+      "description": "Conçu un agent autonome pour rechercher des événements en ligne en Île-de-France, extraire les informations clés (nom, date, lieu) et compiler les résultats en CSV, en utilisant le web scraping et des workflows automatisés.",
+      "id": "9bec7021-3357-4a7f-9113-641ebd27b1c6"
+    },
+    {
+      "name": "PromptForge – LLM Prompt Optimization  Browser Extension",
+      "technologies": "n8n, Ollama  Postgres, RAG, Qdrant",
+      "description": "Développé une extension de navigateur pour optimiser les prompts destinés aux LLMs (ChatGPT, Google Gemini, DeepSeek), en intégrant des algorithmes avancés et des services backend (RAG.json, n8n, Ollama, Postgres, Qdrant) pour améliorer la qualité et la précision des réponses IA.",
+      "id": "98775855-789b-468b-a41b-afaa70dff76b"
+    },
+    {
+      "name": "Final Web Scraping & Automated Job  Summarization",
+      "technologies": "n8n, Jina AI, ETL",
+      "description": "Créé un pipeline automatisé avec n8n pour extraire régulièrement des offres d’emploi depuis plusieurs sites (ex. mediacongo.net), avec intégration d’APIs (ScraperAPI, Jina AI), traitement et nettoyage des données, et export automatique vers Google Sheets pour analyse et synthèse.",
+      "id": "7e5ce913-a74e-4bda-9c6c-d2267c00b378"
+    }
+  ],
+  "education": [
+    {
+      "school": "ICAM",
+      "degree": "Bachelor en Science (B.Sc.) de l'Ingenieur, Filière polytechnique générale ",
+      "year": "sept. 2025 - août 2028",
+      "id": "d414773b-c526-4ce1-a7b4-ea079e7e6676",
+      "startDate": "2025-09",
+      "endDate": "2028-08"
+    },
+    {
+      "school": "ULC-ICAM",
+      "degree": "Bachelor en Science (B.Sc.) de l'Ingenieur, Filière polytechnique générale ",
+      "year": "sept. 2022 - août 2025",
+      "id": "d2677d61-3d8f-4c72-be8e-b69fcffd3db8",
+      "startDate": "2022-09",
+      "endDate": "2025-08"
+    }
+  ]
+}
